@@ -1,0 +1,12 @@
+{
+    "name": "rdio-remote",
+    "version": "1.0.0",
+    "dependencies": {
+        "express": "*",
+        "jade": "*",
+        "stylus": "*",
+        "rdio": "*",
+        "socket.io": "*"
+    }
+}
+
