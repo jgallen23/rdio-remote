@@ -31,7 +31,7 @@ app.configure(function() {
       return req.session;
   }
   });
-  app.set("views", "" + __dirname + "/templates");
+  app.set("views", "" + __dirname + "/views");
   app.set("view options", {
     layout: false 
   });
