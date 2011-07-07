@@ -3,6 +3,16 @@ html
   head
     script(src="/socket.io/socket.io.js")
   body
-    button Pause
+    div#Remote
+      button(data-action='pause') Pause
+
     script(src="/ui/scripts/vendor/ender.js")
     script(src="/ui/scripts/remote.js")
+    script
+      var remote = new RemoteController({ el: $("#Remote") });
+      remote.bind("ready", function() {
+        console.log("ready");
+        this.play('t9616341');
+      });
+
+

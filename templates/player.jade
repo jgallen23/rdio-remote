@@ -3,13 +3,21 @@ html
   head
     script(src="/socket.io/socket.io.js")
   body
-    p this is the player
-    - if (!session.oauth_access_token)
-      a(href="/oauth/login") Login
-
     div#Player
+      p this is the player
+      - if (!session.oauth_access_token)
+        a(href="/oauth/login") Login
+
+      div#FPlayer
+      div#NowPlaying
+    script#jstNowPlaying(type='text/template')
+      != partial('partials/now_playing.jade')
+    script(src="/ui/scripts/vendor/ender.js")
     script(src='https://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js')
-    script
-      var playbackToken = '#{playbackToken}';
-      var songs = !{JSON.stringify(songs)};
     script(src="/ui/scripts/player.js")
+    script
+      var songs = !{JSON.stringify(songs)};
+      var player = new PlayerController({ el: $("#Player"), playbackToken: '#{playbackToken}' });
+      player.bind('ready', function() {
+        //this.play(songs[5].key);
+      });

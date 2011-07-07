@@ -73,16 +73,36 @@ require('./routes/player')(app, config, rdio);
 require('./routes/remote')(app, config, rdio);
 
 //Sockets
-var player,remote;
+var players = {},remote;
+var generateToken = function(token) {
+  //check if token valid
+  if (token)
+    return token;
+  else
+    return '123';//Math.round(Math.random()*10000000); //TODO: better token
+};
 io.sockets.on('connection', function(socket) {
-  socket.on('player', function() {
-    player = socket;
-
+  socket.on('player', function(token, fn) {
+    token = generateToken(token);
+    fn(token);
+    players[token] = {
+      socket: socket,
+      remotes: []
+    };
   });
-  socket.on('remote', function() {
-    remote = socket;
-    socket.on('pause', function() {
-      player.emit('pause');
+  socket.on('remote', function(token, authKey, fn) {
+    if (authKey) {//check authkey
+    } else if (token) {
+      console.log(token);
+      players[token].remotes.push(socket);
+      fn(token);
+      socket.set('token', token);
+    }
+    socket.on('play', function(token, key) {
+      players[token].socket.emit('play', key);
+    });
+    socket.on('pause', function(token) {
+      players[token].socket.emit('pause');
     });
   });
 });

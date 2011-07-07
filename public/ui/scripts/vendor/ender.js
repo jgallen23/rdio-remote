@@ -5,7 +5,7 @@
   * https://ender.no.de
   * License MIT
   * Module's individual licenses still apply
-  * Build: ender build qwery bean bonzo
+  * Build: ender build qwery bean bonzo fidel str.js scriptjs
   * =======================================================
   */
 
@@ -1592,5 +1592,327 @@
   
   }(ender || $);
   
+
+}();
+
+!function () {
+
+  var module = { exports: {} }, exports = module.exports;
+
+  /*!
+    * Fidel - A javascript controller
+    * v1.1.3
+    * https://github.com/jgallen23/fidel
+    * copyright JGA 2011
+    * MIT License
+    */
+  
+  (function(obj) {
+    var eventSplitter = /^(\w+)\s*(.*)$/;
+  
+    var Fidel = function() {
+      return {
+        _initialize: function(options) {
+  
+          for (var key in options) {
+            this[key] = options[key];
+          }
+          if (!this.el) throw "el is required";
+          
+          if (this.events) this.delegateEvents();
+          if (this.elements) this.refreshElements();
+          if (this.templateSelector) this.loadTemplate();
+          if (!this.actionEvent) this.actionEvent = "click";
+          this.delegateActions();
+          this.getDataElements();
+        },
+        proxy: function(func){
+          var self = this;
+          return(function(){ 
+            if (func)
+              return func.apply(self, arguments); 
+          });
+        },
+        delegateEvents: function() {
+          for (var key in this.events) {
+            var methodName = key; 
+            var method = this.proxy(this[methodName]);
+  
+            var match = this.events[key].match(eventSplitter);
+            var eventName = match[1], selector = match[2];
+  
+            if (selector === '') {
+              this.el.bind(eventName, method);
+            } else {
+              this.el.delegate(selector, eventName, method);
+            }
+          }
+        },
+        delegateActions: function() {
+          var elements = this.find("[data-action]");
+          for (var i = 0, c = elements.length; i < c; i++) {
+            var elem = $(elements[i]);
+            var methodName = elem.attr("data-action");
+            var method = this.proxy(this[methodName]);
+            var eventName = this.actionEvent, selector = '[data-action="'+methodName+'"]';
+            this.el.delegate(selector, eventName, method);
+          }
+        },
+        refreshElements: function() {
+          for (var key in this.elements) {
+            this[key] = this.find(this.elements[key]);
+          }
+        },
+        getDataElements: function() {
+          var self = this;
+          var elements = this.find("[data-element]");
+          for (var i = 0, c = elements.length; i < c; i++) {
+            var elem = $(elements[i]);
+            self[elem.attr("data-element")] = elem;
+          }
+        },
+        loadTemplate: function() {
+          this.template = $(this.templateSelector).html();
+        },
+        find: function(selector) {
+          return $(selector, this.el[0]);
+        },
+        render: function(data, selector) {
+          var str = str || $;
+          if (str) {
+            var tmp = str.template(this.template, data);
+            selector = (selector)?$(selector):this.el;
+            selector.html(tmp);
+          }
+        },
+        trigger: function(name, val) {
+          $(this.el).trigger(name, val);
+        },
+        bind: function(name, handler) {
+          var self = this;
+          $(this.el).bind(name, function() { 
+            handler.apply(self, arguments);
+          });
+        }
+      };
+    };
+    Fidel.extend = function(obj) {
+      var k = function Controller() {
+        this._initialize.apply(this, arguments);
+        if (this.init) this.init.apply(this, arguments);
+      };
+      k.prototype = new this();
+      for (var key in obj) {
+        if (obj.hasOwnProperty(key)) k.prototype[key] = obj[key]; 
+      }
+      k.prototype.constructor = k;
+      return k;
+    };
+  
+    var o = obj.Fidel;
+    Fidel.noConflict = function() {
+      obj.Fidel = o;
+      return this;
+    };
+    obj.Fidel = Fidel;
+  })(window);
+  
+
+  provide("fidel", module.exports);
+
+  !function($) {
+    var f = Fidel.noConflict();
+    $.ender({
+      Fidel: f
+    });
+  }(ender);
+  
+
+}();
+
+!function () {
+
+  var module = { exports: {} }, exports = module.exports;
+
+  !function(obj) {
+    var str = (function() {
+      var templateCache = {};
+      var formatRegEx = /\{([^}]+)\}/g;
+  
+      return {
+        format: function(s, args) {
+          return s.replace(formatRegEx, function(_, match){ return args[match]; }); 
+        }, 
+        template: function tmpl(template, data) {
+          var fn = !/\W/.test(template) ?
+          templateCache[template] = templateCache[template] ||
+            tmpl(template) :
+          new Function("obj",
+            "var p=[],print=function(){p.push.apply(p,arguments);};" +
+            "with(obj){p.push('" +
+            template
+            .replace(/[\r\t\n]/g, "")
+            .split("{!").join("\t")
+            .replace(/((^|!})[^\t]*)'/g, "$1\r")
+            .replace(/\t=(.*?)!}/g, "',$1,'")
+            .split("\t").join("');")
+            .split("!}").join("p.push('")
+            .split("\r").join("\\'")
+          + "');}return p.join('');");
+          return data ? fn( data ) : fn;
+        }
+      };
+    })();
+    var o = obj.str;
+    str.noConflict = function() {
+    obj.str = o;
+    return this;
+    };
+    obj.str = str;
+    if (typeof module !== "undefined") {
+      module.exports = obj.str;
+    }
+  }(this);
+  
+
+  provide("str.js", module.exports);
+
+  !function($) {
+    var s = str.noConflict();
+    $.ender(s);
+  }(ender);
+  
+
+}();
+
+!function () {
+
+  var module = { exports: {} }, exports = module.exports;
+
+  /*!
+    * $script.js v1.3
+    * https://github.com/ded/script.js
+    * Copyright: @ded & @fat - Dustin Diaz, Jacob Thornton 2011
+    * Follow our software http://twitter.com/dedfat
+    * License: MIT
+    */
+  !function(win, doc, timeout) {
+    var head = doc.getElementsByTagName('head')[0],
+        list = {}, ids = {}, delay = {},
+        scripts = {}, s = 'string', f = false,
+        push = 'push', domContentLoaded = 'DOMContentLoaded', readyState = 'readyState',
+        addEventListener = 'addEventListener', onreadystatechange = 'onreadystatechange',
+        every = function(ar, fn) {
+          for (var i = 0, j = ar.length; i < j; ++i) {
+            if (!fn(ar[i])) {
+              return f;
+            }
+          }
+          return 1;
+        };
+        function each(ar, fn) {
+          every(ar, function(el) {
+            return !fn(el);
+          });
+        }
+  
+    if (!doc[readyState] && doc[addEventListener]) {
+      doc[addEventListener](domContentLoaded, function fn() {
+        doc.removeEventListener(domContentLoaded, fn, f);
+        doc[readyState] = "complete";
+      }, f);
+      doc[readyState] = "loading";
+    }
+  
+    var $script = function(paths, idOrDone, optDone) {
+      paths = paths[push] ? paths : [paths];
+      var idOrDoneIsDone = idOrDone && idOrDone.call,
+          done = idOrDoneIsDone ? idOrDone : optDone,
+          id = idOrDoneIsDone ? paths.join('') : idOrDone,
+          queue = paths.length;
+          function loopFn(item) {
+            return item.call ? item() : list[item];
+          }
+          function callback() {
+            if (!--queue) {
+              list[id] = 1;
+              done && done();
+              for (var dset in delay) {
+                every(dset.split('|'), loopFn) && !each(delay[dset], loopFn) && (delay[dset] = []);
+              }
+            }
+          }
+      timeout(function() {
+        each(paths, function(path) {
+          if (scripts[path]) {
+            id && (ids[id] = 1);
+            callback();
+            return;
+          }
+          scripts[path] = 1;
+          id && (ids[id] = 1);
+          create($script.path ?
+            $script.path + path + '.js' :
+            path, callback);
+        });
+      }, 0);
+      return $script;
+    };
+  
+    function create(path, fn) {
+      var el = doc.createElement("script"),
+          loaded = f;
+      el.onload = el.onerror = el[onreadystatechange] = function () {
+        if ((el[readyState] && !(/^c|loade/.test(el[readyState]))) || loaded) {
+          return;
+        }
+        el.onload = el[onreadystatechange] = null;
+        loaded = 1;
+        fn();
+      };
+      el.async = 1;
+      el.src = path;
+      head.insertBefore(el, head.firstChild);
+    }
+  
+    $script.get = create;
+  
+    $script.ready = function(deps, ready, req) {
+      deps = deps[push] ? deps : [deps];
+      var missing = [];
+      !each(deps, function(dep) {
+        list[dep] || missing[push](dep);
+      }) && every(deps, function(dep) {
+        return list[dep];
+      }) ? ready() : !function(key) {
+        delay[key] = delay[key] || [];
+        delay[key][push](ready);
+        req && req(missing);
+      }(deps.join('|'));
+      return $script;
+    };
+  
+    var old = win.$script;
+    $script.noConflict = function () {
+      win.$script = old;
+      return this;
+    };
+  
+    (typeof module !== 'undefined' && module.exports) ?
+      (module.exports = $script) :
+      (win['$script'] = $script);
+  
+  }(this, document, setTimeout);
+  
+
+  provide("scriptjs", module.exports);
+
+  var $script = require('scriptjs');
+  ender.ender({
+    script: $script,
+    ready: $script.ready,
+    require: $script,
+    getScript: $script.get
+  });
 
 }();
