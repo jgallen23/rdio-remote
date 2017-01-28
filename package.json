@@ -2,7 +2,7 @@
     "name": "rdio-remote",
     "version": "1.0.0",
     "dependencies": {
-        "express": "*",
+        "express": ">=4.14.1",
         "jade": "*",
         "stylus": "*",
         "rdio": "*",
